@@ -10,8 +10,10 @@
 
 		LRSession *session = [SettingsUtil getSession];
 
-		int groupId = [self _getGuestGroupId:session];
-
+		long groupId = [self _getGuestGroupId:session];
+		long classNameId = [self _getClassNameId:session className:@"com.liferay.portal.model.Group"];
+        long calendarResourceId = [self _getCalenderResource:session classNameId:classNameId classPK:groupId];
+        
 		LRUserService_v62 *service = [[LRUserService_v62 alloc]
 			initWithSession:session];
 
@@ -27,6 +29,37 @@
 			User *user = [[User alloc] init:[users objectAtIndex:i]];
 			[self.users addObject:user];
 		}
+        
+        ///////////////////////////
+        
+		LRCalendarService_v62 *calendarService = [[LRCalendarService_v62 alloc]
+			initWithSession:session];
+        
+        NSArray *calenders = [calendarService getCalendarResourceCalendars:groupId calendarResourceId:calendarResourceId defaultCalendar:TRUE error:&error];
+        
+        if (error) {
+			NSLog(@"Error: %@", error);
+		}
+        
+        long calandarId = -1;
+        
+		for (int i = 0; i < [calenders count]; i++) {
+			CalendarResource *calendar = [[CalendarResource alloc] init:[calenders objectAtIndex:i]];
+			[self.calendars addObject:calendar];
+            calandarId = calendar.calendarId;
+		}
+        
+        NSArray *bookings = [calendarService getCalendarBookings:calandarId startTime:-1 endTime:-1 error:&error];
+    
+        if (error) {
+			NSLog(@"Error: %@", error);
+		}
+        
+        for(int i = 0 ; i < [bookings count]; i++) {
+			CalendarBooking *booking = [[CalendarBooking alloc] init:[bookings objectAtIndex:i]];
+			[self.bookings addObject:booking];
+        }
+        
 	}
 
 	return self;
@@ -131,6 +164,46 @@
 	}
 
 	return [groupId intValue];
+}
+
+- (long)_getClassNameId:(LRSession *)session className:(NSString *)className{
+    NSError *error;
+    
+    LRClassNameService_v62 *service = [[LRClassNameService_v62 alloc]
+		initWithSession:session];
+    
+    NSNumber *classNameId = [service fetchClassNameIdWithValue:className error:&error];
+    
+	if (error) {
+		NSLog(@"Error: %@", error);
+        
+		return [classNameId longValue];
+	}
+    
+    return [classNameId longValue];
+}
+
+- (long)_getCalenderResource:(LRSession *)session classNameId:(long long)classNameId classPK:(long long)classPK {
+    NSError *error;
+    NSNumber *calendarResourceId = [NSNumber numberWithLong:-1];
+    LRCalendarService_v62 *service = [[LRCalendarService_v62 alloc]
+                                       initWithSession:session];
+    
+    NSDictionary *calenderResource = [service fetchCalendarResourceByGroupId:classNameId classPK:classPK error:&error];
+    
+	if (error) {
+		NSLog(@"Error: %@", error);
+        
+		return [calendarResourceId longValue];
+	}
+        
+    calendarResourceId = [calenderResource objectForKey:@"calendarResourceId"];
+    
+	if ([calendarResourceId longValue] == -1) {
+		NSLog(@"Couldn't find calendarResourceId.");
+	}
+    
+	return [calendarResourceId longValue];
 }
 
 @end
