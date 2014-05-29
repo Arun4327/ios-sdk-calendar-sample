@@ -1,9 +1,9 @@
-#import "User.h"
+#import "CalendarBooking.h"
 
 @interface DetailsViewController : UITableViewController
 
-@property (nonatomic, retain) User *user;
+@property (nonatomic, retain) CalendarBooking *booking;
 
-- (id)init:(User *)user;
+- (id)init:(CalendarBooking *)booking;
 
 @end

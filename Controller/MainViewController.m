@@ -6,31 +6,17 @@
 	self = [super initWithStyle:UITableViewStylePlain];
 
 	if (self) {
-		self.users = [[NSMutableArray alloc] init];
 
+        
 		LRSession *session = [SettingsUtil getSession];
+        NSError *error;
 
 		long groupId = [self _getGuestGroupId:session];
 		long classNameId = [self _getClassNameId:session className:@"com.liferay.portal.model.Group"];
         long calendarResourceId = [self _getCalenderResource:session classNameId:classNameId classPK:groupId];
-        
-		LRUserService_v62 *service = [[LRUserService_v62 alloc]
-			initWithSession:session];
 
-		NSError *error;
-		NSArray *users = [service getGroupUsersWithGroupId:groupId
-			error:&error];
-
-		if (error) {
-			NSLog(@"Error: %@", error);
-		}
-
-		for (int i = 0; i < [users count]; i++) {
-			User *user = [[User alloc] init:[users objectAtIndex:i]];
-			[self.users addObject:user];
-		}
-        
-        ///////////////////////////
+        self.calendars = [[NSMutableArray alloc] init];
+        self.bookings = [[NSMutableArray alloc] init];
         
 		LRCalendarService_v62 *calendarService = [[LRCalendarService_v62 alloc]
 			initWithSession:session];
@@ -43,12 +29,14 @@
         
         long calandarId = -1;
         
+        //Selected Default calendar above, so the first object should be the default calendar.
 		for (int i = 0; i < [calenders count]; i++) {
 			CalendarResource *calendar = [[CalendarResource alloc] init:[calenders objectAtIndex:i]];
 			[self.calendars addObject:calendar];
             calandarId = calendar.calendarId;
 		}
         
+        //Fetch all bookings
         NSArray *bookings = [calendarService getCalendarBookings:calandarId startTime:-1 endTime:-1 error:&error];
     
         if (error) {
@@ -59,7 +47,6 @@
 			CalendarBooking *booking = [[CalendarBooking alloc] init:[bookings objectAtIndex:i]];
 			[self.bookings addObject:booking];
         }
-        
 	}
 
 	return self;
@@ -82,10 +69,12 @@
 			initWithStyle:UITableViewCellStyleDefault
 			reuseIdentifier:identifier];
 	}
+    
+    [UIFont preferredFontForTextStyle:UIFontTextStyleCaption2];
 
-	User *user = [self.users objectAtIndex:indexPath.row];
-
-	[cell.textLabel setText:user.name];
+	CalendarBooking *booking = [self.bookings objectAtIndex:indexPath.row];
+    
+	[cell.textLabel setText:booking.title];
 
 	return cell;
 }
@@ -93,42 +82,19 @@
 - (void)tableView:(UITableView *)tableView
 		didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 
-	User *user = [self.users objectAtIndex:indexPath.row];
+    CalendarBooking *booking = [self.bookings objectAtIndex:indexPath.row];
+	DetailsViewController *detailsController = [[DetailsViewController alloc]
+		init:booking];
 
-	LRBatchSession *batch = [[LRBatchSession alloc]
-		init:[SettingsUtil getSession]];
+	[self.navigationController pushViewController:detailsController
+		animated:YES];
 
-	ContactCallback *callback = [[ContactCallback alloc]
-		init:user navigationController:self.navigationController];
-
-	[batch setCallback:callback];
-
-	LRContactService_v62 *contactService = [[LRContactService_v62 alloc]
-		initWithSession:batch];
-
-	NSError *error;
-
-	[contactService getContactWithContactId:user.contactId error:&error];
-
-	LRPhoneService_v62 *phoneService = [[LRPhoneService_v62 alloc]
-		initWithSession:batch];
-
-	[phoneService getPhonesWithClassName:@"com.liferay.portal.model.Contact"
-		classPK:user.contactId error:&error];
-
-	[batch invoke:&error];
-
-	if (error) {
-		NSLog(@"Error: %@", error);
-
-		return;
-	}
 }
 
 - (NSInteger)tableView:(UITableView *)tableView
  		numberOfRowsInSection:(NSInteger)section {
 
-	return [self.users count];
+	return [self.bookings count];
 }
 
 - (int)_getGuestGroupId:(LRSession *)session {

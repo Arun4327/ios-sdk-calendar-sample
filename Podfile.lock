@@ -1,10 +1,23 @@
 PODS:
-  - Liferay-iOS-SDK (6.2.0.2)
+  - KissXML (5.0)
+  - Kiwi (2.2.4):
+    - Kiwi/SenTestingKit
+  - Kiwi/ARC (2.2.4)
+  - Kiwi/NonARC (2.2.4)
+  - Kiwi/SenTestingKit (2.2.4):
+    - Kiwi/ARC
+    - Kiwi/NonARC
+  - Kiwi/XCTest (2.2.4):
+    - Kiwi/ARC
+    - Kiwi/NonARC
 
 DEPENDENCIES:
-  - Liferay-iOS-SDK (= 6.2.0.2)
+  - KissXML
+  - Kiwi
+  - Kiwi/XCTest
 
 SPEC CHECKSUMS:
-  Liferay-iOS-SDK: 7161e33df2c8157b6ad5b6bf2a2d3c08e6121a4e
+  KissXML: e537c38b18ede903ee6de45953a9bd86c131ebe9
+  Kiwi: c73667f2b84cbf36f1a3830267c5a4ae8dcbd8ba
 
-COCOAPODS: 0.32.1
+COCOAPODS: 0.33.1

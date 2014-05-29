@@ -1,11 +1,3 @@
-//
-//  BaseModel.m
-//  Liferay Mobile SDK Sample iOS
-//
-//  Created by 竹生 泰之 on 2014/05/27.
-//  Copyright (c) 2014年 Liferay Inc. All rights reserved.
-//
-
 #import "BaseModel.h"
 
 @implementation BaseModel
@@ -32,5 +24,33 @@
         
     return [formatter stringFromDate:birthday];
 
+}
+
+- (NSString *)getStringFromXML:(NSString *)targetStr targetPath:(NSString *)targetPath {
+    NSString *retStr = [[NSString alloc] init];
+    
+    NSError *error;
+    DDXMLDocument *doc = [[DDXMLDocument alloc] initWithXMLString:targetStr options:0 error:&error];
+
+	if (error) {
+		NSLog(@"DDXMLDocument Initialize Error: %@", error);
+        
+		return retStr;
+	}
+    
+    // Fetch target node with XPath
+    NSArray *nodes = [doc nodesForXPath:targetPath error:&error];
+    
+	if (error || 0 == [nodes count]) {
+		NSLog(@"nodesForXPath parse Error: %@", error);
+        
+		return retStr;
+	}
+    
+    DDXMLNode *node = nodes[0];
+    
+    retStr = node.stringValue;
+    
+    return retStr;
 }
 @end

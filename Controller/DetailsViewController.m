@@ -2,11 +2,11 @@
 
 @implementation DetailsViewController
 
-- (id)init:(User *)user {
+- (id)init:(CalendarBooking *)booking {
 	self = [super initWithStyle:UITableViewStyleGrouped];
 
 	if (self) {
-		self.user = user;
+		self.booking = booking;
 	}
 
 	return self;
@@ -18,16 +18,6 @@
 
 - (NSInteger)tableView:(UITableView *)tableView
  		numberOfRowsInSection:(NSInteger)section {
-
-	if (section == 3) {
-		NSArray *phones = self.user.contact.phones;
-
-		if ([phones count] == 0) {
-			return 1;
-		}
-
-		return [phones count];
-	}
 
 	return 1;
 }
@@ -49,21 +39,16 @@
 	NSString *text = @"";
 
 	if (indexPath.section == 0) {
-		text = [NSString stringWithFormat:@"%@ %@", self.user.name,
-			self.user.lastName];
+		text = [NSString stringWithFormat:@"%@", self.booking.title];
 	}
 	else if (indexPath.section == 1) {
-		text = self.user.contact.emailAddress;
+		text = self.booking.description;
 	}
 	else if (indexPath.section == 2) {
-		text = self.user.contact.birthday;
+		text = self.booking.startTime;
 	}
 	else {
-		NSArray *phones = self.user.contact.phones;
-
-		if ([phones count] > 0) {
-			text = [phones objectAtIndex:indexPath.row];
-		}
+		text = self.booking.startTime;
 	}
 
 	[cell.textLabel setText:text];
@@ -75,16 +60,16 @@
 		titleForHeaderInSection:(NSInteger)section {
 
 	if (section == 0) {
-		return @"Name";
+		return @"予定";
 	}
 	else if (section == 1) {
-		return @"Email";
+		return @"詳細";
 	}
 	else if (section == 2) {
-		return @"Birthday";
+		return @"開始時間";
 	}
 	else {
-		return @"Phones";
+		return @"終了時間";
 	}
 }
 

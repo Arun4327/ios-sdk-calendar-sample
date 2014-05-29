@@ -14,8 +14,14 @@
     
 	if (self) {
 
-		self.title = [jsonObj objectForKey:@"title"];
-		self.description = [jsonObj objectForKey:@"description"];
+        NSString *title = [jsonObj objectForKey:@"title"];
+        
+        //self.title = [jsonObj objectForKey:@"title"];
+		self.title = [self getStringFromXML:title targetPath:@"/root/Title"];
+        
+        NSString *description = [jsonObj objectForKey:@"description"];
+        //self.description = [jsonObj objectForKey:@"description"];
+        self.description = [self getStringFromXML:description targetPath:@"/root/Description"];
         
 		NSNumber *calendarBookingId = [jsonObj objectForKey:@"calendarBookingId"];
 		self.calendarBookingId = [calendarBookingId longValue];
