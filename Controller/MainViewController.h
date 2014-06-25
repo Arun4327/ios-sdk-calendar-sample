@@ -8,10 +8,13 @@
 #import "CalendarResource.h"
 #import "CalendarBooking.h"
 #import "SettingsUtil.h"
+#import "CalendarCallback.h"
 #import "DetailsViewController.h"
 
 @interface MainViewController : UITableViewController
 
+@property (nonatomic) long groupId;
+@property (nonatomic) long classNameId;
 @property (nonatomic, retain) NSMutableArray *calendars;
 @property (nonatomic, retain) NSMutableArray *bookings;
 

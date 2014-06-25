@@ -4,41 +4,37 @@
 
 - (id)init {
 	self = [super initWithStyle:UITableViewStylePlain];
+    return self;
+}
 
-	if (self) {
+-(void) viewWillAppear:(BOOL)animated {
 
+    if (self) {
         
 		LRSession *session = [SettingsUtil getSession];
         NSError *error;
-
-		long groupId = [self _getGuestGroupId:session];
-		long classNameId = [self _getClassNameId:session className:@"com.liferay.portal.model.Group"];
-        long calendarResourceId = [self _getCalenderResource:session classNameId:classNameId classPK:groupId];
-
+        
+		self.groupId = [self _getGuestGroupId:session];
+		self.classNameId = [self _getClassNameId:session className:@"com.liferay.portal.model.Group"];
+        long calendarResourceId = [self _getCalenderResource:session classNameId:self.classNameId classPK:self.groupId];
+        
         self.calendars = [[NSMutableArray alloc] init];
         self.bookings = [[NSMutableArray alloc] init];
         
 		LRCalendarService_v62 *calendarService = [[LRCalendarService_v62 alloc]
-			initWithSession:session];
+                                                  initWithSession:session];
         
-        NSArray *calenders = [calendarService getCalendarResourceCalendars:groupId calendarResourceId:calendarResourceId defaultCalendar:TRUE error:&error];
+        NSArray *calenders = [calendarService getCalendarResourceCalendars:self.groupId calendarResourceId:calendarResourceId defaultCalendar:TRUE error:&error];
         
         if (error) {
 			NSLog(@"Error: %@", error);
 		}
         
-        long calandarId = -1;
-        
-        //Selected Default calendar above, so the first object should be the default calendar.
-		for (int i = 0; i < [calenders count]; i++) {
-			CalendarResource *calendar = [[CalendarResource alloc] init:[calenders objectAtIndex:i]];
-			[self.calendars addObject:calendar];
-            calandarId = calendar.calendarId;
-		}
+        long calandarId = [self _getDefaultCalendar:calenders];
         
         //Fetch all bookings
         NSArray *bookings = [calendarService getCalendarBookings:calandarId startTime:-1 endTime:-1 error:&error];
-    
+        
         if (error) {
 			NSLog(@"Error: %@", error);
 		}
@@ -48,8 +44,20 @@
 			[self.bookings addObject:booking];
         }
 	}
+    [self updateVisibleCells];
+}
 
-	return self;
+- (void)updateVisibleCells {
+    for (UITableViewCell *cell in [self.tableView visibleCells]){
+        [self updateCell:cell atIndexPath:[self.tableView indexPathForCell:cell]];
+    }
+}
+
+// Update Cells
+- (void)updateCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+	CalendarBooking *booking = [self.bookings objectAtIndex:indexPath.row];
+    
+	[cell.textLabel setText:booking.title];
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -60,13 +68,13 @@
 		cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
 	static NSString *identifier = @"Cell";
-
+    
 	UITableViewCell *cell =
 		[tableView dequeueReusableCellWithIdentifier:identifier];
 
 	if (cell == nil) {
 		cell = [[UITableViewCell alloc]
-			initWithStyle:UITableViewCellStyleDefault
+			initWithStyle:UITableViewCellStyleValue1
 			reuseIdentifier:identifier];
 	}
     
@@ -81,13 +89,26 @@
 
 - (void)tableView:(UITableView *)tableView
 		didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
+    
+    NSError *error;
+    LRSession *session = [SettingsUtil getSession];
+ 
+    LRCalendarService_v62 *calendarService = [[LRCalendarService_v62 alloc]
+                                              initWithSession:session];
+    
     CalendarBooking *booking = [self.bookings objectAtIndex:indexPath.row];
-	DetailsViewController *detailsController = [[DetailsViewController alloc]
-		init:booking];
-
-	[self.navigationController pushViewController:detailsController
-		animated:YES];
+    
+    CalendarCallback *callback = [[CalendarCallback alloc]
+		init:booking navigationController:self.navigationController];
+    
+	[session setCallback:callback];
+    [calendarService getCalendarBookingWithCalendarBookingId:booking.calendarBookingId error:&error];
+    
+	if (error) {
+		NSLog(@"Error: %@", error);
+        
+		return;
+	}
 
 }
 
@@ -170,6 +191,19 @@
 	}
     
 	return [calendarResourceId longValue];
+}
+
+- (long)_getDefaultCalendar:(NSArray *)calendars {
+    NSNumber *calandarId = [[NSNumber alloc] initWithLong:-1];
+    
+    //Selected Default calendar above, so the first object should be the default calendar.
+    for (int i = 0; i < [calendars count]; i++) {
+        CalendarResource *calendar = [[CalendarResource alloc] init:[calendars objectAtIndex:i]];
+        [self.calendars addObject:calendar];
+        calandarId = [NSNumber numberWithLong:calendar.calendarId];
+    }
+    
+    return [calandarId longValue];
 }
 
 @end

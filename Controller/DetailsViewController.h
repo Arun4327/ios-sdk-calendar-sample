@@ -1,4 +1,5 @@
 #import "CalendarBooking.h"
+#import "CalendarResource.h"
 
 @interface DetailsViewController : UITableViewController
 

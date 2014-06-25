@@ -1,0 +1,53 @@
+/**
+ * Copyright (c) 2000-2014 Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+#import "LRBaseService.h"
+
+NSString *const _SERVICE_CONTEXT = @"com.liferay.portal.service.ServiceContext";
+
+/**
+ * @author Bruno Farache
+ */
+@implementation LRBaseService
+
+- (id)initWithSession:(LRSession *)session {
+	self = [super init];
+
+	if (self) {
+		self.session = session;
+	}
+
+	return self;
+}
+
+- (BOOL)boolValue:(NSNumber *)number {
+	return [number boolValue];
+}
+
+- (void)mangleWrapperWithParams:(NSMutableDictionary *)params
+	name:(NSString *)name className:(NSString *)className
+	wrapper:(LRJSONObjectWrapper *)wrapper {
+
+	if (!wrapper) {
+		if (![className isEqualToString:_SERVICE_CONTEXT]) {
+			[params setObject:[NSNull null] forKey:name];
+		}
+
+		return;
+	}
+
+	[wrapper mangleWithParams:params name:name className:className];
+}
+
+@end

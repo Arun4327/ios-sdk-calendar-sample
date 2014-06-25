@@ -32,7 +32,7 @@
 
 	if (cell == nil) {
 		cell = [[UITableViewCell alloc]
-			initWithStyle:UITableViewCellStyleDefault
+			initWithStyle:UITableViewCellStyleValue1
 			reuseIdentifier:identifier];
 	}
 
@@ -71,6 +71,14 @@
 	else {
 		return @"終了時間";
 	}
+}
+
+-(void) viewWillDisappear:(BOOL)animated {
+    if ([self.navigationController.viewControllers indexOfObject:self]==NSNotFound) {
+       // back button was pressed.  We know this is true because self is no longer
+       // in the navigation stack.  
+    }
+    [super viewWillDisappear:animated];
 }
 
 @end
